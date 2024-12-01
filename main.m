@@ -2,12 +2,12 @@ clc
 clear
 close all
 %% Variables
-ops.velocity = 200; % [m/s]
+ops.velocity = 50; % [m/s]
 ops.mu = 1.81*10^(-5); % [Pa s]
 ops.rho = 1.223; % [kg/m^3]
 ops.c = 0.5; % [m]
-% simopts.alpha = -5:1:15; % [-] AoA
-ops.alpha = 0.5; % [-] AoA
+ops.alpha = -5:1:15; % [-] AoA
+% ops.alpha = 0.5; % [-] AoA
 ops.Mach = ops.velocity/343; % [-] Mach number
 ops.Re = ops.rho*ops.c*ops.velocity/ops.mu; % [-] Reynolds Number
 ops.g = 9.81; % [m/s^2]
@@ -25,16 +25,16 @@ disp(['Lift / Weight: ', num2str(L/ops.plane.weight)]);
 % airfoil(2) = myxfoil('NACA4421', simopts);
 
 %% Plot Lift v alpha
-% figure
-% hold on
-% plot(airfoil(1).data.alpha,airfoil(1).data.CL, 'xr')
+figure
+hold on
+plot(airfoil(1).data.alpha,airfoil(1).data.CL, 'xr')
 % plot(airfoil(2).data.alpha,airfoil(2).data.CL, 'xb')
-% % plot(airfoil(3).data.alpha,airfoil(3).data.CL, 'xb')
-% title("Lift Polars at Re = 8.4*10^5")
-% xlabel("AoA [deg]")
-% ylabel("C_L [-]")
-% grid on
-% legend({'NACA 4412','NACA 4421'})
+% plot(airfoil(3).data.alpha,airfoil(3).data.CL, 'xb')
+title("Lift Polars at Re = 8.4*10^5")
+xlabel("AoA [deg]")
+ylabel("C_L [-]")
+grid on
+legend({'NACA 4412','NACA 4421'})
 
 %% Plot Pitching moment v alpha
 % figure
