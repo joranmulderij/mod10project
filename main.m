@@ -18,7 +18,7 @@ ops.g = 9.81; % [m/s^2]
 ops.plane.m = 10600; % [kg]
 ops.plane.weight = ops.plane.m * ops.g; % [N]
 ops.plane.S = 30; % [m^2] % Needs more research
-ops.plane.e = 0.95; % [-] % Needs more research
+ops.plane.e = 0.9; % [-] % Needs more research
 ops.plane.AR = 9; % [-] % Needs more research
 
 %% XFoil
@@ -69,6 +69,9 @@ ylabel("C_L [-]")
 grid on
 legend({'NACA 4412','NACA 4421'})
 plot(airfoil(1).data.alpha([1, ops.sim.max_linear_alpha_index]), airfoil(1).data.CL([1, ops.sim.max_linear_alpha_index]), 'b')
+max_linear_alpha = airfoil(1).data.alpha(ops.sim.max_linear_alpha_index);
+max_linear_C_L = a_0 * (alpha - alpha_0);
+plot(airfoil(1).data.alpha([1, ops.sim.max_linear_alpha_index]), [0, max_linear_C_L], 'b')
 
 %% Plot Pitching moment v alpha
 % figure
