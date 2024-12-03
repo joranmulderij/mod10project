@@ -50,6 +50,18 @@ C_L = a_0 * (alpha - alpha_0);
 L = 1/2 * ops.sim.rho * velocity^2 * C_L * ops.plane.S; % [N]
 disp(['Lift / Weight: ', num2str(L/ops.plane.weight)]);
 
+%% Pressure v x plot
+
+index = 7;
+figure
+hold on
+half = ceil(length(airfoil(1).foil.xcp)/2);
+plot(airfoil(1).foil.xcp(1:half), airfoil(1).foil.cp(1:half,index));
+plot(airfoil(1).foil.xcp(half+1:end), airfoil(1).foil.cp(half+1:end,index));
+title(['c_p over x at \alpha = ', num2str(airfoil(1).foil.alpha(index))])
+xlabel('x/c')
+ylabel('c_p')
+
 % airfoil(2) = myxfoil('NACA4421', simopts);
 
 %% Plot Lift v alpha
