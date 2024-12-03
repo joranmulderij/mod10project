@@ -52,22 +52,14 @@ disp(['Lift / Weight: ', num2str(L/ops.plane.weight)]);
 
 %% Pressure v x plot
 
-index = 7;
 figure
-hold on
-half = ceil(length(airfoil(1).foil.xcp)/2);
-plot(airfoil(1).foil.xcp(1:half), airfoil(1).foil.cp(1:half,index));
-plot(airfoil(1).foil.xcp(half+1:end), airfoil(1).foil.cp(half+1:end,index));
-title(['c_p over x at \alpha = ', num2str(airfoil(1).foil.alpha(index))])
-xlabel('x/c')
-ylabel('c_p')
+plotairfoilpressure(airfoil(1), 7);
 
 % airfoil(2) = myxfoil('NACA4421', simopts);
 
 %% Plot Lift v alpha
 figure
 hold on
-plot(airfoil(1).data.alpha([1, ops.sim.max_linear_alpha_index]), airfoil(1).data.CL([1, ops.sim.max_linear_alpha_index]), 'b')
 plot(airfoil(1).data.alpha, airfoil(1).data.CL, 'xr')
 % plot(airfoil(2).data.alpha,airfoil(2).data.CL, 'xb')
 % plot(airfoil(3).data.alpha,airfoil(3).data.CL, 'xb')
@@ -76,6 +68,7 @@ xlabel("AoA [deg]")
 ylabel("C_L [-]")
 grid on
 legend({'NACA 4412','NACA 4421'})
+plot(airfoil(1).data.alpha([1, ops.sim.max_linear_alpha_index]), airfoil(1).data.CL([1, ops.sim.max_linear_alpha_index]), 'b')
 
 %% Plot Pitching moment v alpha
 % figure
