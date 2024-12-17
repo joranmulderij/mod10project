@@ -38,6 +38,7 @@ slowsim.max_linear_alpha_index = 12; % index of alpha range
 slowsim.Re = fastsim.rho*plane.c_average*fastsim.velocity/fastsim.mu; % [-] Reynolds Number
 
 %% XFoil
+% (running xfoil from matlab)
 airfoil.name = 'NACA 2412';
 [airfoil.data, airfoil.foil] = xfoil(airfoil.name,fastsim.alpha,fastsim.Re,fastsim.Mach,'oper iter 60','ppar N 181','oper xtr 0.1 0.1');
 airfoil = calculate_finite_wing(airfoil, fastsim, plane);
@@ -55,12 +56,16 @@ airfoil_23015.name = 'NACA 23015';
 airfoil_23015 = calculate_finite_wing(airfoil_23015, fastsim, plane);
 
 %% Lift cruise
+% Calculating the required c_l to fly in cruise
+% Then calculating the required alpha for that
 L = plane.weight;
 required_cruise_C_L = L / ((1/2) * fastsim.rho * fastsim.velocity^2 * plane.S);
 required_cruise_alpha = required_cruise_C_L / airfoil.a + airfoil.alpha_0;
 disp(['Required /alpha cruise: ', num2str(required_cruise_alpha), ' [deg]']);
 
 %% Drag cruise
+% Calculating the drag and induced drag coming from the main wings during
+% cruise
 i = find(airfoil.data.alpha>required_cruise_alpha, 1);
 cruise_c_d = airfoil.data.CD(i);
 cruise_D = 1/2 * fastsim.rho * fastsim.velocity^2 * cruise_c_d * plane.S; % [N]
@@ -70,11 +75,17 @@ cruise_D_i = L*required_cruise_C_L/pi/plane.AR;
 disp(['D + D_i = ', num2str(cruise_D), ' + ', num2str(cruise_D_i), ' = ', num2str(cruise_D+cruise_D_i), ' N']);
 
 %% Lift takeoff
+% Calculating the required c_l to takeoff
+% Then calculating the required alpha for that
 required_takeoff_C_L = L / ((1/2) * slowsim.rho * slowsim.velocity^2 * plane.S);
 required_takeoff_alpha = required_takeoff_C_L / airfoil_flaps.a + airfoil_flaps.alpha_0;
 disp(['Cruise: Required /alpha takeoff: ', num2str(required_takeoff_alpha), ' [deg]']);
 
 %% Drag takeoff
+% Calculating the drag and induced drag coming from the main wings during
+% takeoff
+
+% alpha at alpha_takeoff
 i = find(airfoil_flaps.data.alpha>required_takeoff_alpha, 1);
 takeoff_c_d = airfoil_flaps.data.CD(i);
 takeoff_D = 1/2 * slowsim.rho * slowsim.velocity^2 * takeoff_c_d * plane.S; % [N]
@@ -83,6 +94,7 @@ takeoff_D_i = L*required_takeoff_C_L/pi/plane.AR;
 
 disp(['Takeoff: D + D_i = ', num2str(takeoff_D), ' + ', num2str(takeoff_D_i), ' = ', num2str(takeoff_D+takeoff_D_i), ' N']);
 
+% alpha at 0
 i = find(airfoil_flaps.data.alpha>0, 1);
 takeoff_alpha_0_c_d = airfoil_flaps.data.CD(i);
 takeoff_alpha_0_D = 1/2 * slowsim.rho * slowsim.velocity^2 * takeoff_alpha_0_c_d * plane.S; % [N]
@@ -103,6 +115,7 @@ disp(['Takeoff alpha=0: D + D_i = ', num2str(takeoff_alpha_0_D), ' + ', num2str(
 % plotairfoilpressure(naca2412flaps, 7);
 
 %% Plot Lift v alpha
+% Cruise
 figure
 hold on
 title("Lift v Alpha")
@@ -113,6 +126,7 @@ plot_lift_v_alpha(airfoil, fastsim)
 grid on
 legend({airfoil.name})
 
+% Takeoff
 figure
 hold on
 title("Lift v Alpha")
