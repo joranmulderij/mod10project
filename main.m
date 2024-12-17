@@ -7,13 +7,13 @@ close all
 opt.g = 9.81; % [m/s^2]
 
 % Simulation parameters
-fastsim.Mach = 0.5; % [-] Mach number
+fastsim.Mach = 0.6; % [-] Mach number
 fastsim.velocity = fastsim.Mach*343; % [m/s]
 fastsim.c = 0.5; % [m]
 fastsim.mu = 1.81*10^(-5); % [Pa s]
 fastsim.rho = 1.223; % [kg/m^3]
-fastsim.alpha = -5:0.5:10; % [-] AoA
-fastsim.max_linear_alpha_index = 24; % index of alpha range
+fastsim.alpha = -3:0.5:10; % [-] AoA
+fastsim.max_linear_alpha_index = 20; % index of alpha range
 fastsim.Re = fastsim.rho*fastsim.c*fastsim.velocity/fastsim.mu; % [-] Reynolds Number
 
 slowsim.velocity = 100; % [m/s]
@@ -32,12 +32,13 @@ plane.c1 = 2.2; % [m] Base chord length
 plane.c2 = 0.8; % [m] Tip chord length
 plane.b = 20; % [m] Wing span (both wings)
 plane.S = (plane.c1 + plane.c2)/2 * plane.b; % [m^2]
-plane.e = 0.9; % [-] % Needs more research
+plane.e = 0.98; % [-] % Needs more research
 plane.AR = plane.b^2 / plane.S; % [-]
 
 %% XFoil
-[naca2412.data, naca2412.foil] = xfoil('NACA2412',fastsim.alpha,fastsim.Re,fastsim.Mach,'oper iter 60','ppar N 181','oper xtr 0.1 0.1');
-naca2412 = calculate_finite_wing(naca2412, fastsim, plane);
+airfoil1.name = 'NACA 23012';
+[airfoil1.data, airfoil1.foil] = xfoil(airfoil1.name,fastsim.alpha,fastsim.Re,fastsim.Mach,'oper iter 60','ppar N 181','oper xtr 0.1 0.1');
+airfoil1 = calculate_finite_wing(airfoil1, fastsim, plane);
 % [naca2412flaps.data, naca2412flaps.foil] = xfoil('NACA2412',fastsim.alpha,fastsim.Re,fastsim.Mach,'gdes flap 0.7 0 10','oper iter 60','ppar N 181','oper xtr 0.1 0.1');
 % naca2612 = myxfoil('NACA2606', ops.sim);
 
@@ -51,13 +52,13 @@ naca2412 = calculate_finite_wing(naca2412, fastsim, plane);
 % plotfoil(naca2412flaps)
 
 %% Lift
-C_L = naca2412.a * (0 - naca2412.alpha_0);
+C_L = airfoil1.a * (0 - airfoil1.alpha_0);
 L = 1/2 * fastsim.rho * fastsim.velocity^2 * C_L * plane.S; % [N]
 disp(['Lift / Weight: ', num2str(L/plane.weight)]);
 
 %% Drag
-index = indexwherealphais(naca2412, 0);
-c_d = naca2412.data.CD(index);
+index = indexwherealphais(airfoil1, 0);
+c_d = airfoil1.data.CD(index);
 D = 1/2 * fastsim.rho * fastsim.velocity^2 * c_d * plane.S; % [N]
 
 D_i = L*C_L/pi/plane.AR;
@@ -82,9 +83,9 @@ title("Lift v Alpha")
 xlabel("AoA [deg]")
 ylabel("C_L [-]")
 % plot(naca2412flaps.data.alpha, naca2412flaps.data.CL, 'xg')
-plot_lift_v_alpha(naca2412, fastsim)
+plot_lift_v_alpha(airfoil1, fastsim)
 grid on
-legend({'NACA 2412','NACA 2606'})
+legend({airfoil1.name})
 
 %% Plot Pitching moment v alpha
 % figure
@@ -100,15 +101,15 @@ legend({'NACA 2412','NACA 2606'})
 
 %% Plot Lift v Drag
 
-% figure
-% hold on
-% plot(naca2412.data.alpha,(naca2412.data.CL./naca2412.data.CD),'xr')
-% 
-% title("Lift/Drag Ratio at Re = 8.4*10^5")
-% xlabel("AoA [deg]")
-% ylabel("C_L/C_D [-]")
-% grid on
-% legend({'NACA 0012','NACA 63(2)-415'})
+figure
+hold on
+plot(airfoil1.data.alpha,(airfoil1.data.CL./airfoil1.data.CD),'xr')
+
+title("Lift/Drag Ratio at Re = 8.4*10^5")
+xlabel("AoA [deg]")
+ylabel("C_L/C_D [-]")
+grid on
+legend({airfoil1.name})
 
 %% Plot foil
 % figure
