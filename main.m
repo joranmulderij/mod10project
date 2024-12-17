@@ -46,15 +46,6 @@ airfoil_flaps.name = 'NACA 2412 flaps';
 [airfoil_flaps.data, airfoil_flaps.foil] = xfoil('NACA 2412',slowsim.alpha,slowsim.Re,slowsim.Mach,'gdes flap 0.7 0 10','oper iter 60','ppar N 181','oper xtr 0.1 0.1');
 airfoil_flaps = calculate_finite_wing(airfoil_flaps, slowsim, plane);
 
-%% Plot foils
-
-% figure
-% tiledlayout(2, 1)
-% nexttile
-% plotfoil(naca2412)
-% nexttile
-% plotfoil(naca2412flaps)
-
 %% Lift cruise
 L = plane.weight;
 required_cruise_C_L = L / ((1/2) * fastsim.rho * fastsim.velocity^2 * plane.S);
