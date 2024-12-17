@@ -46,6 +46,14 @@ airfoil_flaps.name = 'NACA 2412 flaps';
 [airfoil_flaps.data, airfoil_flaps.foil] = xfoil('NACA 2412',slowsim.alpha,slowsim.Re,slowsim.Mach,'gdes flap 0.7 0 10','oper iter 60','ppar N 181','oper xtr 0.1 0.1');
 airfoil_flaps = calculate_finite_wing(airfoil_flaps, slowsim, plane);
 
+airfoil_23012.name = 'NACA 23012';
+[airfoil_23012.data, airfoil_23012.foil] = xfoil(airfoil_23012.name,fastsim.alpha,fastsim.Re,fastsim.Mach,'oper iter 60','ppar N 181','oper xtr 0.1 0.1');
+airfoil_23012 = calculate_finite_wing(airfoil_23012, fastsim, plane);
+
+airfoil_23015.name = 'NACA 23015';
+[airfoil_23015.data, airfoil_23015.foil] = xfoil(airfoil_23015.name,fastsim.alpha,fastsim.Re,fastsim.Mach,'oper iter 60','ppar N 181','oper xtr 0.1 0.1');
+airfoil_23015 = calculate_finite_wing(airfoil_23015, fastsim, plane);
+
 %% Lift cruise
 L = plane.weight;
 required_cruise_C_L = L / ((1/2) * fastsim.rho * fastsim.velocity^2 * plane.S);
@@ -132,12 +140,15 @@ legend({airfoil_flaps.name})
 figure
 hold on
 plot(airfoil.data.alpha,(airfoil.data.CL./airfoil.data.CD),'xr')
+plot(airfoil_23012.data.alpha,(airfoil_23012.data.CL./airfoil_23012.data.CD),'ob')
+plot(airfoil_23015.data.alpha,(airfoil_23015.data.CL./airfoil_23015.data.CD),'-g')
 
 title("Lift/Drag")
 xlabel("AoA [deg]")
 ylabel("C_L/C_D [-]")
 grid on
-legend({airfoil.name})
+legend('NACA 2412','NACA 23012','NACA 23015','Location','southeast') 
+
 
 %% Plot foil
 figure
