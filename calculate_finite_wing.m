@@ -14,8 +14,8 @@ for i = 1:length(airfoil(1).data.CL)
 end
 
 % calculate a_0
-dalpha = airfoil(1).data.alpha(sim.max_linear_alpha_index) - airfoil(1).data.alpha(1);
-dc_l = airfoil(1).data.CL(sim.max_linear_alpha_index) - airfoil(1).data.CL(1);
+dalpha = airfoil(1).data.alpha(sim.max_linear_alpha_index) - airfoil.alpha_0;
+dc_l = airfoil(1).data.CL(sim.max_linear_alpha_index) - 0;
 airfoil.a_0 = dc_l / dalpha;
 
 % calculate a

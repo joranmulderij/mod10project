@@ -6,41 +6,45 @@ close all
 % General parameters
 opt.g = 9.81; % [m/s^2]
 
+% Plane parameters
+plane.m = 10700; % [kg]
+plane.weight = plane.m * opt.g; % [N]
+plane.taper_ratio = 0.88;
+plane.c1 = 2.2; % [m] Base chord length
+plane.c2 = plane.c1 * plane.taper_ratio; % [m] Tip chord length
+plane.c_average = (plane.c1 + plane.c2) / 2;
+plane.b = 20; % [m] Wing span (both wings)
+plane.S = (plane.c1 + plane.c2)/2 * plane.b; % [m^2]
+plane.e = 0.98; % [-]
+plane.AR = plane.b^2 / plane.S; % [-]
+plane.landing_gear_height = 1.5; % [m]
+
 % Simulation parameters
+[fastsim.rho, fastsim.temperature, fastsim.pressure] = atmosModel(10000);
 fastsim.Mach = 0.6; % [-] Mach number
 fastsim.velocity = fastsim.Mach*343; % [m/s]
 fastsim.c = 0.5; % [m]
 fastsim.mu = 1.81*10^(-5); % [Pa s]
-fastsim.rho = 1.223; % [kg/m^3]
-fastsim.alpha = -3:0.5:10; % [-] AoA
+fastsim.alpha = -3:0.5:8; % [-] AoA
 fastsim.max_linear_alpha_index = 20; % index of alpha range
-fastsim.Re = fastsim.rho*fastsim.c*fastsim.velocity/fastsim.mu; % [-] Reynolds Number
+fastsim.Re = fastsim.rho*plane.c_average*fastsim.velocity/fastsim.mu; % [-] Reynolds Number
 
-slowsim.velocity = 100; % [m/s]
+[slowsim.rho, slowsim.temperature, slowsim.pressure] = atmosModel(0);
+slowsim.velocity = 55; % [m/s]
 slowsim.Mach = slowsim.velocity/343; % [-] Mach number
-slowsim.c = 0.5; % [m]
 slowsim.mu = 1.81*10^(-5); % [Pa s]
-slowsim.rho = 1.223; % [kg/m^3]
-slowsim.alpha = -5:1:12; % [-] AoA
+slowsim.alpha = -10:1:20; % [-] AoA
 slowsim.max_linear_alpha_index = 12; % index of alpha range
-slowsim.Re = fastsim.rho*fastsim.c*fastsim.velocity/fastsim.mu; % [-] Reynolds Number
-
-% Plane parameters
-plane.m = 10700; % [kg]
-plane.weight = plane.m * opt.g; % [N]
-plane.c1 = 2.2; % [m] Base chord length
-plane.c2 = 0.8; % [m] Tip chord length
-plane.b = 20; % [m] Wing span (both wings)
-plane.S = (plane.c1 + plane.c2)/2 * plane.b; % [m^2]
-plane.e = 0.98; % [-] % Needs more research
-plane.AR = plane.b^2 / plane.S; % [-]
+slowsim.Re = fastsim.rho*plane.c_average*fastsim.velocity/fastsim.mu; % [-] Reynolds Number
 
 %% XFoil
-airfoil1.name = 'NACA 23012';
-[airfoil1.data, airfoil1.foil] = xfoil(airfoil1.name,fastsim.alpha,fastsim.Re,fastsim.Mach,'oper iter 60','ppar N 181','oper xtr 0.1 0.1');
-airfoil1 = calculate_finite_wing(airfoil1, fastsim, plane);
-% [naca2412flaps.data, naca2412flaps.foil] = xfoil('NACA2412',fastsim.alpha,fastsim.Re,fastsim.Mach,'gdes flap 0.7 0 10','oper iter 60','ppar N 181','oper xtr 0.1 0.1');
-% naca2612 = myxfoil('NACA2606', ops.sim);
+airfoil.name = 'NACA 2412';
+[airfoil.data, airfoil.foil] = xfoil(airfoil.name,fastsim.alpha,fastsim.Re,fastsim.Mach,'oper iter 60','ppar N 181','oper xtr 0.1 0.1');
+airfoil = calculate_finite_wing(airfoil, fastsim, plane);
+
+airfoil_flaps.name = 'NACA 2412 flaps';
+[airfoil_flaps.data, airfoil_flaps.foil] = xfoil('NACA 2412',slowsim.alpha,slowsim.Re,slowsim.Mach,'gdes flap 0.7 0 10','oper iter 60','ppar N 181','oper xtr 0.1 0.1');
+airfoil_flaps = calculate_finite_wing(airfoil_flaps, slowsim, plane);
 
 %% Plot foils
 
@@ -51,19 +55,42 @@ airfoil1 = calculate_finite_wing(airfoil1, fastsim, plane);
 % nexttile
 % plotfoil(naca2412flaps)
 
-%% Lift
-C_L = airfoil1.a * (0 - airfoil1.alpha_0);
-L = 1/2 * fastsim.rho * fastsim.velocity^2 * C_L * plane.S; % [N]
-disp(['Lift / Weight: ', num2str(L/plane.weight)]);
+%% Lift cruise
+L = plane.weight;
+required_cruise_C_L = L / ((1/2) * fastsim.rho * fastsim.velocity^2 * plane.S);
+required_cruise_alpha = required_cruise_C_L / airfoil.a + airfoil.alpha_0;
+disp(['Required /alpha cruise: ', num2str(required_cruise_alpha), ' [deg]']);
 
-%% Drag
-index = indexwherealphais(airfoil1, 0);
-c_d = airfoil1.data.CD(index);
-D = 1/2 * fastsim.rho * fastsim.velocity^2 * c_d * plane.S; % [N]
+%% Drag cruise
+i = find(airfoil.data.alpha>required_cruise_alpha, 1);
+cruise_c_d = airfoil.data.CD(i);
+cruise_D = 1/2 * fastsim.rho * fastsim.velocity^2 * cruise_c_d * plane.S; % [N]
 
-D_i = L*C_L/pi/plane.AR;
+cruise_D_i = L*required_cruise_C_L/pi/plane.AR;
 
-disp(['D + D_i = ', num2str(D), ' + ', num2str(D_i), ' = ', num2str(D+D_i), ' N']);
+disp(['D + D_i = ', num2str(cruise_D), ' + ', num2str(cruise_D_i), ' = ', num2str(cruise_D+cruise_D_i), ' N']);
+
+%% Lift takeoff
+required_takeoff_C_L = L / ((1/2) * slowsim.rho * slowsim.velocity^2 * plane.S);
+required_takeoff_alpha = required_takeoff_C_L / airfoil_flaps.a + airfoil_flaps.alpha_0;
+disp(['Cruise: Required /alpha takeoff: ', num2str(required_takeoff_alpha), ' [deg]']);
+
+%% Drag takeoff
+i = find(airfoil_flaps.data.alpha>required_takeoff_alpha, 1);
+takeoff_c_d = airfoil_flaps.data.CD(i);
+takeoff_D = 1/2 * slowsim.rho * slowsim.velocity^2 * takeoff_c_d * plane.S; % [N]
+
+takeoff_D_i = L*required_takeoff_C_L/pi/plane.AR;
+
+disp(['Takeoff: D + D_i = ', num2str(takeoff_D), ' + ', num2str(takeoff_D_i), ' = ', num2str(takeoff_D+takeoff_D_i), ' N']);
+
+i = find(airfoil_flaps.data.alpha>0, 1);
+takeoff_alpha_0_c_d = airfoil_flaps.data.CD(i);
+takeoff_alpha_0_D = 1/2 * slowsim.rho * slowsim.velocity^2 * takeoff_alpha_0_c_d * plane.S; % [N]
+
+takeoff_alpha_0_D_i = L*required_takeoff_C_L/pi/plane.AR/plane.e;
+
+disp(['Takeoff alpha=0: D + D_i = ', num2str(takeoff_alpha_0_D), ' + ', num2str(takeoff_alpha_0_D_i), ' = ', num2str(takeoff_alpha_0_D+takeoff_alpha_0_D_i), ' N']);
 
 %% Pressure v x plot
 
@@ -83,9 +110,19 @@ title("Lift v Alpha")
 xlabel("AoA [deg]")
 ylabel("C_L [-]")
 % plot(naca2412flaps.data.alpha, naca2412flaps.data.CL, 'xg')
-plot_lift_v_alpha(airfoil1, fastsim)
+plot_lift_v_alpha(airfoil, fastsim)
 grid on
-legend({airfoil1.name})
+legend({airfoil.name})
+
+figure
+hold on
+title("Lift v Alpha")
+xlabel("AoA [deg]")
+ylabel("C_L [-]")
+% plot(naca2412flaps.data.alpha, naca2412flaps.data.CL, 'xg')
+plot_lift_v_alpha(airfoil_flaps, slowsim)
+grid on
+legend({airfoil_flaps.name})
 
 %% Plot Pitching moment v alpha
 % figure
@@ -103,18 +140,18 @@ legend({airfoil1.name})
 
 figure
 hold on
-plot(airfoil1.data.alpha,(airfoil1.data.CL./airfoil1.data.CD),'xr')
+plot(airfoil.data.alpha,(airfoil.data.CL./airfoil.data.CD),'xr')
 
-title("Lift/Drag Ratio at Re = 8.4*10^5")
+title("Lift/Drag")
 xlabel("AoA [deg]")
 ylabel("C_L/C_D [-]")
 grid on
-legend({airfoil1.name})
+legend({airfoil.name})
 
 %% Plot foil
-% figure
-% tiledlayout(2,1)
-% nexttile
-% plotfoil(naca2412)
-% nexttile
-% plotfoil(airfoil(2))
+figure
+tiledlayout(2,1)
+nexttile
+plotfoil(airfoil)
+nexttile
+plotfoil(airfoil_flaps)
