@@ -7,7 +7,7 @@ close all
 opt.g = 9.81; % [m/s^2]
 
 % Plane parameters
-plane.m = 10700; % [kg]
+plane.m = 9345; % [kg]
 plane.weight = plane.m * opt.g; % [N]
 plane.taper_ratio = 0.88;
 plane.c1 = 2.2; % [m] Base chord length
