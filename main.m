@@ -35,7 +35,9 @@ slowsim.Mach = slowsim.velocity/343; % [-] Mach number
 slowsim.mu = 1.81*10^(-5); % [Pa s]
 slowsim.alpha = -10:1:20; % [-] AoA
 slowsim.max_linear_alpha_index = 12; % index of alpha range
-slowsim.Re = fastsim.rho*plane.c_average*fastsim.velocity/fastsim.mu; % [-] Reynolds Number
+slowsim.Re = slowsim.rho*plane.c_average*slowsim.velocity/slowsim.mu; % [-] Reynolds Number
+
+return
 
 %% XFoil
 % (running xfoil from matlab)
